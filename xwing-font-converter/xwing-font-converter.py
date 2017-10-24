@@ -7,14 +7,11 @@ X-Wing font to image converter
 :author: KalHamaar
 :date: 24/10/2017
 
-Used to convert font from geordanr into png images
+Used to convert xwing geordanr's font into png images.
 
 :seealso: https://github.com/geordanr/xwing-miniatures-font
-
-
 """
 import argparse
-
 import sys
 
 from font_converter import FontConverter

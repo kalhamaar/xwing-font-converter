@@ -34,7 +34,7 @@ class FontConverter(object):
             self._log.error('MISSING TTF FILE (.ttf) !')
 
         if not os.path.exists(self._output_folder):
-            os.mkdir(self._output_folder)
+            os.makedirs(self._output_folder)
 
     def get_elements_from_map(self):
         """
