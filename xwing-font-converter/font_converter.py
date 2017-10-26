@@ -1,5 +1,8 @@
-import re
+# coding=utf-8
+import locale
 import os
+import re
+import subprocess
 
 from logger import get_logger
 
@@ -49,26 +52,21 @@ class FontConverter(object):
         regex = r"s*(.*)\:\s\"(.*)\",.*"
 
         matches = re.finditer(regex, test_str)
-        # then parse it to get keycode
-
+        # then parse it to get key code
         for match in matches:
             element_name = match.group(1).lstrip()
             element_code = match.group(2).lstrip()
 
-            # because icons are in ascii hexa
-            if str(element_code).startswith('\\00'):
-                element_code = element_code.replace('\\', '').decode('hex')[1:]
-
-            elif str(element_code).startswith('\\01'):
-                # skip obstacles for now
-                continue
+            # because icons are in css code (eg: \011E mean Ğ)
+            if str(element_code).startswith('\\'):
+                element_code = element_code.replace('\\', '\u').decode('unicode-escape')
 
             # for better quote enclosing insert quoting here
             if element_code == "'":
+                # if element code is single-quote, surround with double-quotes
                 element_code = "\"" + element_code + "\""
             else:
                 element_code = "'" + element_code + "'"
-
             self._element_map[element_name] = element_code
 
     def convert_2_images(self, color='black', point_size=50, size=72):
@@ -82,11 +80,11 @@ class FontConverter(object):
         """
         # now convert TTF to images
         for element in self._element_map:
-            self._log.debug("Processing '{element}' (keycode: {keycode}) ...".
+            self._log.info(u"Processing '{element}' (keycode: {keycode}) ...".
                             format(element=element, keycode=self._element_map[element]))
 
             output_file = os.path.join(self._output_folder, "{ship}.png".format(ship=element))
-            convert_cmd = "convert -font {ttf_file} -background none -fill {color} -gravity center " \
+            convert_cmd = u"convert -font {ttf_file} -background none -fill {color} -gravity center " \
                           "-pointsize {pointsize} -size {size}x{size} caption:{keycode} {output}". \
                 format(ttf_file=self._ttf_file_path,
                        color=color,
@@ -95,4 +93,6 @@ class FontConverter(object):
                        keycode=self._element_map[element],
                        output=output_file)
 
-            os.system(convert_cmd)
+            # self._log.debug(convert_cmd)
+            # need to set locale encoding because non-ascii characters (eg: Ğ)
+            subprocess.Popen(convert_cmd.encode(locale.getpreferredencoding()), shell=True)
