@@ -1,22 +1,19 @@
 import logging
 
-
-def get_logger():
-    return MyLogger()
+LOGGER = None
 
 
-class Singleton(object):
-    _instance = None
+def get_logger(loglevel='INFO'):
 
-    def __new__(cls, *args, **kwargs):
-        if not isinstance(cls._instance, cls):
-            cls._instance = object.__new__(cls, *args, **kwargs)
-        return cls._instance
+    global LOGGER
+    if not LOGGER:
+        LOGGER = MyLogger(loglevel=loglevel)
+    return LOGGER
 
 
-class MyLogger(logging.Logger, Singleton):
+class MyLogger(logging.Logger):
     
-    def __init__(self, name='Font Converter'):
+    def __init__(self, name='Font Converter', loglevel='INFO'):
         super(MyLogger, self).__init__(name)
 
         # create logger
@@ -24,7 +21,9 @@ class MyLogger(logging.Logger, Singleton):
 
         # create console handler and set level to debug
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
+
+        lvl = getattr(logging, loglevel, 'INFO')
+        ch.setLevel(lvl)
 
         # create formatter
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -33,4 +32,3 @@ class MyLogger(logging.Logger, Singleton):
         ch.setFormatter(formatter)
         # add ch to logger
         self.addHandler(ch)
-

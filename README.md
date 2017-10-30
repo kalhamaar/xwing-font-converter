@@ -3,34 +3,50 @@ X-Wing Font to Images converter
 
 Vector font by [Hinny](https://github.com/Hinny), [armoredgear7](https://github.com/armoredgear7), and [ScottKarch](https://github.com/ScottKarch).
 
+X-Wing miniature font by [geordanr](https://github.com/geordanr)
+
 [List of symbols on xwing-miniatures-font](https://geordanr.github.io/xwing-miniatures-font/)
 
 ## Idea
 The idea of this script is to convert each elements of a font to separated images.
 For a later use on forum and so on.
-It needed the *scss* file to know what ship/icons correspond to what character.
+It needed the CSS (*.scss* or *.css*) file to know what ship/icons correspond to what character.
+And the TrueTypeFont (*.ttf*) file to extract image from
+
+eg:
+[_ships-map.scss](https://github.com/geordanr/xwing-miniatures-font/blob/master/src/sass/_ships-map.scss)
+and
+[xwing-miniatures-ships.ttf](https://github.com/geordanr/xwing-miniatures-font/blob/master/src/fonts/xwing-miniatures-ships.ttf)
+
 
 ## Installation
-No specific need, except _python_, which is commonly installed on most of linux distribution
+No specific installation requested, except _python_, which is commonly installed on most of linux distribution.
 
 ## Usage
-    usage: xwing-font-converter.py [-h] [-c {black,white}] [-p PS] [-s SIZE]
-                                   [-m MAP] [-t TTF] [-o OUT]
+    usage: xwing-font-converter.py [-h] [-c {black,white,red,green}] [-p PS]
+                                   [-s SIZE] [-v {DEBUG,INFO,WARNING,ERROR}]
+                                   [-f {gif,png}] [-m MAP] [-t TTF] [-o OUT]
 
     X-Wing font to image converter by KalHamaar
 
     optional arguments:
       -h, --help            show this help message and exit
-      -c {black,white}, --color {black,white}
-                            Color of font to use (default: black)
+      -c {black,white,red,green}, --color {black,white,red,green}
+                            color of font to use (default: black)
       -p PS, --pointsize PS
-                            Size of font to use (default: 50)
-      -s SIZE, --size SIZE  Size of generated image as x*x (default: 64x64)
+                            size of font to use (default: 50)
+      -s SIZE, --size SIZE  size of generated image as x*x (default: 72x72)
+      -f {gif,png}, --format {gif,png}
+                            output file format (default: gif)
+      -v {DEBUG,INFO,WARNING,ERROR}, --verbosity {DEBUG,INFO,WARNING,ERROR}
+                            log level to use (default: INFO)
+
 
     required arguments:
-      -m MAP, --map MAP     Mapping file to use (.scss)
+      -m MAP, --map MAP     mapping file to use (.scss)
       -t TTF, --ttf TTF     TrueType Font file to use (.ttf)
-      -o OUT, --output OUT  Output folder (will created if not exist)
+      -o OUT, --output OUT  output folder (will created if not exist)
+
 
 ### Example:
 
