@@ -1,10 +1,10 @@
 """
 Unit testing of FontConverter class
 """
+import logging
 import os
-import unittest
-
 import shutil
+import unittest
 
 from font_converter import FontConverter
 
@@ -13,6 +13,9 @@ class TestFontConverter(unittest.TestCase):
 
     def setUp(self):
         super(TestFontConverter, self).setUp()
+
+        # disable log during tests
+        logging.disable(logging.CRITICAL)
 
         map_file = os.path.join('resources', '_ships-map.scss')
         ttf_file = os.path.join('resources', 'xwing-miniatures-ships.ttf')
