@@ -50,7 +50,11 @@ required.add_argument('-o', '--output', dest='OUT', help='output folder (will cr
 
 
 def main():
+    """
+    Main entry point for font converter
 
+    :return:
+    """
     args = parser.parse_args()
 
     logger = get_logger(loglevel=args.VERBOSITY)

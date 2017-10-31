@@ -1,2 +1,2 @@
 include *.md
-recursive-include x_wing_font_converter *.scss *.ttf
+recursive-include xwing_font_converter *.scss *.ttf

@@ -1,5 +1,4 @@
-X-Wing Font to Images converter
-===============================
+# X-Wing Font to Images converter
 
 Vector font by [Hinny](https://github.com/Hinny), [armoredgear7](https://github.com/armoredgear7), and [ScottKarch](https://github.com/ScottKarch).
 
@@ -8,6 +7,7 @@ X-Wing miniature font by [geordanr](https://github.com/geordanr)
 [List of symbols on xwing-miniatures-font](https://geordanr.github.io/xwing-miniatures-font/)
 
 ## Idea
+
 The idea of this script is to convert each elements of a font to separated images.
 For a later use on forum and so on.
 It needed the CSS (*.scss* or *.css*) file to know what ship/icons correspond to what character.
@@ -21,10 +21,19 @@ and
 
 ## Installation
 
-    untar dist
-    python setup.py install
+1. Download zip from GitHub page
+2. Install:
+
+    ```
+    $ unzip xwing-font-converter-master.zip
+    $ cd xwing-font-converter-master/
+    $ python setup.py install
+    ```
+
+
 
 ## Usage
+
     usage: xwing-font-converter [-h] [-c {black,white,red,green}] [-p PS]
                                 [-s SIZE] [-v {DEBUG,INFO,WARNING,ERROR}]
                                 [-f {gif,png}] [-m MAP] [-t TTF] [-o OUT]
@@ -52,5 +61,5 @@ and
 
 ### Example:
 
-    $ ./xwing-font-converter.py -m resources/_ships-map.scss -t resources/xwing-miniatures-ships.ttf -o output/test -c white
+    $ ./xwing-font-converter -m resources/_ships-map.scss -t resources/xwing-miniatures-ships.ttf -o output/test -c white
 
