@@ -20,12 +20,14 @@ and
 
 
 ## Installation
-No specific installation requested, except _python_, which is commonly installed on most of linux distribution.
+
+    untar dist
+    python setup.py install
 
 ## Usage
-    usage: xwing-font-converter.py [-h] [-c {black,white,red,green}] [-p PS]
-                                   [-s SIZE] [-v {DEBUG,INFO,WARNING,ERROR}]
-                                   [-f {gif,png}] [-m MAP] [-t TTF] [-o OUT]
+    usage: xwing-font-converter [-h] [-c {black,white,red,green}] [-p PS]
+                                [-s SIZE] [-v {DEBUG,INFO,WARNING,ERROR}]
+                                [-f {gif,png}] [-m MAP] [-t TTF] [-o OUT]
 
     X-Wing font to image converter by KalHamaar
 

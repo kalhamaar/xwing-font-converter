@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # coding: utf-8
 
 """
@@ -18,6 +18,8 @@ from os.path import basename
 
 from font_converter import FontConverter
 from logger import get_logger
+
+__all__ = ['main']
 
 parser = argparse.ArgumentParser(description='X-Wing font to image converter by KalHamaar')
 
@@ -47,7 +49,7 @@ required.add_argument('-t', '--ttf', dest='TTF', help='TrueType Font file to use
 required.add_argument('-o', '--output', dest='OUT', help='output folder (will created if not exist)')
 
 
-if __name__ == '__main__':
+def main():
 
     args = parser.parse_args()
 
@@ -82,3 +84,7 @@ if __name__ == '__main__':
     fc.convert_2_images(color=args.COLOR, point_size=args.PS, size=args.SIZE, file_format=args.FORMAT)
 
     logger.info("Extraction done, files available in: {}".format(args.OUT))
+
+
+if __name__ == '__main__':
+    main()
