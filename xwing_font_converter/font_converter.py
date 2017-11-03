@@ -29,7 +29,7 @@ class FontConverter(object):
 
     def init_font_converter(self):
         """
-        Check if given files are correct and create output file if necessary
+        Check if given files are correct and create output folder if necessary
 
         :return: Whether initialisation was ok or not
         :rtype: bool

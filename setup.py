@@ -2,14 +2,14 @@
 
 from setuptools import setup, find_packages
 
-import xwing_font_converter
+from xwing_font_converter import xwing_font_converter
 
-setup(name='X-Wing Font Converter',
+setup(name=xwing_font_converter.__prog_name__,
       version=xwing_font_converter.__version__,
-      description='Convert geordanr\'s font into images',
-      author='KalHamaar',
+      description=xwing_font_converter.__description__,
+      author=xwing_font_converter.__author__,
       author_email='kalhamaar@hotmail.fr',
-      url='https://github.com/kalhamaar/xwing_font_converter',
+      url=xwing_font_converter.__url__,
       classifiers=[
           "Programming Language :: Python",
           "Development Status :: 1 - Planning",
@@ -20,10 +20,11 @@ setup(name='X-Wing Font Converter',
           "Topic :: Font",
       ],
       packages=find_packages(),
-      include_package_data=True,
+      # include_package_data=True,
       entry_points={
           'console_scripts': [
               'xwing-font-converter = xwing_font_converter.xwing_font_converter:main',
+              'xwing-font-converter-gui = xwing_font_converter.xwing_font_converter_gui:main',
           ],
       },
       )

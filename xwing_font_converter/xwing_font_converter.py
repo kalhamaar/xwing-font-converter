@@ -19,7 +19,14 @@ from os.path import basename
 from font_converter import FontConverter
 from logger import get_logger
 
-__all__ = ['main']
+# __all__ = ['main']
+
+__prog_name__ = 'X-Wing Font Converter'
+__version__ = '0.1'
+__author__ = 'KalHamaar'
+__description__ = 'Convert geordanr\'s font into images'
+__url__ = 'https://github.com/kalhamaar/xwing_font_converter'
+
 
 parser = argparse.ArgumentParser(description='X-Wing font to image converter by KalHamaar')
 
