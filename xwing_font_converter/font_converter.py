@@ -1,4 +1,5 @@
 # coding=utf-8
+import json
 import locale
 import os
 import re
@@ -8,7 +9,7 @@ import time
 
 from logger import get_logger
 
-AVAILABLE_COLORS = ['black', 'white', 'red', 'green']
+AVAILABLE_COLORS = ['black', 'white', 'red', 'green', 'blue']
 AVAILABLE_FILE_FORMATS = ['gif', 'png']
 
 
@@ -36,9 +37,10 @@ class FontConverter(object):
         """
         init_ok = True
 
-        init_ok = init_ok and self.__check_file_integrity(self._map_file_path, 'scss')
+        init_ok = init_ok and self.__check_file_integrity(self._map_file_path, 'json')
         init_ok = init_ok and self.__check_file_integrity(self._ttf_file_path, 'ttf')
 
+        self._output_folder = os.path.expanduser(os.path.normpath(self._output_folder))
         if not os.path.exists(self._output_folder):
             os.makedirs(self._output_folder)
             time.sleep(0.25)  # to left system sync
@@ -74,20 +76,20 @@ class FontConverter(object):
         :return: None
         """
         # open it
-        with open(self._map_file_path, 'rb') as map_file:
-            test_str = map_file.read()
+        with open(self._map_file_path, 'r') as map_file:
+            json_data = map_file.read()
 
-        regex = r"s*(.*)\:\s\"(.*)\",.*"
-        matches = re.finditer(regex, test_str)
+        data = json.loads(json_data)
+
         # then parse it to get key code
-        for match in matches:
-            element_name = match.group(1).lstrip()
-            element_code = match.group(2).lstrip()
+        for match in data.get('icons'):
+            element_name = match
+            element_code = data.get('icons').get(match, '')
 
             # because icons are in css code (eg: \011E mean Ğ)
             if element_code.startswith('\\'):
                 # replace \ by \u to convert to unicode str
-                element_code = element_code.replace('\\', '\u').decode('unicode-escape')
+                element_code = element_code.replace('\\', '\\u').decode('unicode-escape')
 
             # for better quote enclosing insert quoting here
             if element_code == "'":
@@ -98,7 +100,7 @@ class FontConverter(object):
 
             self._element_map[element_name] = element_code
 
-    def convert_2_images(self, color='black', point_size=50, size=72, file_format='gif'):
+    def convert_2_images(self, color='black', point_size=50, file_format='gif'):
         """
         Convert all elements in map into images according given options
 
@@ -139,18 +141,35 @@ class FontConverter(object):
                 format(ttf_file=self._ttf_file_path,
                        color=color,
                        pointsize=point_size,
-                       size=size,
+                       size=72,
                        keycode=self._element_map[element],
                        output=output_file)
 
-            self._log.debug(convert_cmd)
-            # need to set locale encoding because non-ascii characters (eg: Ğ)
-            args = convert_cmd.encode(locale.getpreferredencoding())
+            self.execute_binary_command(convert_cmd)
+            # mogrify -unsharp 0x1 -resize 24x24 *.png
 
-            try:
-                # p = subprocess.Popen(args, shell=True)
-                # p.communicate()
-                subprocess.check_call(args, shell=True)
-            except subprocess.CalledProcessError as err:
-                self._log.error(err)
-                raise err
+    def resize_images(self, size):
+
+        resize_cmd = "mogrify -unsharp 0x1 -resize {size}x{size} {folder}{sep}*".format(size=size,
+                                                                                        folder=self._output_folder,
+                                                                                        sep=os.sep)
+        self.execute_binary_command(resize_cmd)
+
+    def trim_images(self):
+
+        resize_cmd = "mogrify -trim {folder}{sep}*".format(folder=self._output_folder, sep=os.sep)
+        self.execute_binary_command(resize_cmd)
+
+    def execute_binary_command(self, command):
+        self._log.debug(command)
+        args = command.encode(locale.getpreferredencoding())
+        # mogrify -unsharp 0x1 -resize 24x24 *.png
+        # mogrify -trim *.png
+
+        try:
+            # p = subprocess.Popen(args, shell=True)
+            # p.communicate()
+            subprocess.check_call(args, shell=True)
+        except subprocess.CalledProcessError as err:
+            self._log.error(err)
+            raise err

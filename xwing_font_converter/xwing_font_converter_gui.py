@@ -35,6 +35,7 @@ class XWingFontConvertGui(gtk.Window):
         self._color = AVAILABLE_COLORS[0]
         self._point_size = 50
         self._size = 72
+        self._trim = True
         self._file_format = AVAILABLE_FILE_FORMATS[0]
 
         self._map_entry = None
@@ -238,8 +239,13 @@ class XWingFontConvertGui(gtk.Window):
 
         fc.convert_2_images(point_size=self._point_size,
                             color=self._color,
-                            size=self._size,
                             file_format=self._file_format)
+
+        if self._size != 72:
+            fc.resize_images(self._size)
+
+        if self._trim:
+            fc.trim_images()
 
         self.logger.info("Extraction done, files available in: {}".format(self._output_entry.get_text()))
         widget.set_sensitive(True)  # re-enable button

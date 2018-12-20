@@ -16,7 +16,7 @@ from sys import exit
 
 from os.path import basename
 
-from font_converter import FontConverter
+from font_converter import FontConverter, AVAILABLE_COLORS, AVAILABLE_FILE_FORMATS
 from logger import get_logger
 
 # __all__ = ['main']
@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(description='X-Wing font to image converter by 
 
 # optional arguments
 parser.add_argument('-c', '--color', dest='COLOR', default='black', action='store',
-                    choices=['black', 'white', 'red', 'green'],
+                    choices=AVAILABLE_COLORS,
                     help='color of font to use (default: %(default)s)')
 
 parser.add_argument('-p', '--pointsize', dest='PS', default=50, action='store',
@@ -41,8 +41,11 @@ parser.add_argument('-p', '--pointsize', dest='PS', default=50, action='store',
 parser.add_argument('-s', '--size', dest='SIZE', default=72, action='store',
                     help='size of generated image as x*x (default: %(default)sx%(default)s)')
 
+parser.add_argument('--trim', dest='TRIM', default=False, action='store_true',
+                    help='Wether trim images or not (default: %(default))')
+
 parser.add_argument('-f', '--format', dest='FORMAT', default='gif', action='store',
-                    choices=['gif', 'png'],
+                    choices=AVAILABLE_FILE_FORMATS,
                     help='output file format (default: %(default)s)')
 
 parser.add_argument('-v', '--verbosity', dest='VERBOSITY', default='INFO', action='store',
@@ -51,7 +54,7 @@ parser.add_argument('-v', '--verbosity', dest='VERBOSITY', default='INFO', actio
 
 required = parser.add_argument_group('required arguments')
 
-required.add_argument('-m', '--map', dest='MAP', help='mapping file to use (.scss)')
+required.add_argument('-m', '--map', dest='MAP', help='mapping file to use (.json)')
 required.add_argument('-t', '--ttf', dest='TTF', help='TrueType Font file to use (.ttf)')
 required.add_argument('-o', '--output', dest='OUT', help='output folder (will created if not exist)')
 
@@ -92,7 +95,13 @@ def main():
                          size=args.SIZE,
                          file_format=args.FORMAT))
 
-    fc.convert_2_images(color=args.COLOR, point_size=args.PS, size=args.SIZE, file_format=args.FORMAT)
+    fc.convert_2_images(color=args.COLOR, point_size=args.PS, file_format=args.FORMAT)
+
+    if args.SIZE != 72:
+        fc.resize_images(args.SIZE)
+
+    if args.TRIM:
+        fc.trim_images()
 
     logger.info("Extraction done, files available in: {}".format(args.OUT))
 
