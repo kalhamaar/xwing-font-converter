@@ -2,15 +2,15 @@
 import json
 import locale
 import os
-import re
 import subprocess
-
 import time
 
 from logger import get_logger
 
-AVAILABLE_COLORS = ['black', 'white', 'red', 'green', 'blue']
+AVAILABLE_COLORS = ['black', 'white',  'blue', 'red', 'grey', 'violet', 'green', 'yellow', 'steelblue1']
 AVAILABLE_FILE_FORMATS = ['gif', 'png']
+DEFAULT_POINTSIZE = 50
+DEFAULT_SIZE = 72
 
 
 class FontConverter(object):
@@ -80,11 +80,12 @@ class FontConverter(object):
             json_data = map_file.read()
 
         data = json.loads(json_data)
+        # get elements from first element in the loaded dict
+        elements = data.get(list(data.keys()).pop(0))
 
-        # then parse it to get key code
-        for match in data.get('icons'):
+        for match in elements:
             element_name = match
-            element_code = data.get('icons').get(match, '')
+            element_code = elements.get(match, '')
 
             # because icons are in css code (eg: \011E mean Ğ)
             if element_code.startswith('\\'):
@@ -93,7 +94,7 @@ class FontConverter(object):
 
             # for better quote enclosing insert quoting here
             if element_code == "'":
-                # if element code is single-quote, surround with double-quotes
+                # if element code is the single-quote, surround with double-quotes instead
                 element_code = "\"" + element_code + "\""
             else:
                 element_code = "'" + element_code + "'"
@@ -107,14 +108,11 @@ class FontConverter(object):
         :param file_format: Image file format (in 'gif', 'png')
         :type file_format: str
 
-        :param color: Color to use (in 'black', 'white', 'red', 'green')
+        :param color: Color to use
         :type color: str
 
         :param point_size: Size of font (default 50)
         :type point_size: int
-
-        :param size: Size of the resulting image in pixel (default 72)
-        :type size: int
 
         :raise AttributeError in case of wrong color or format
         :raise subprocess.CalledProcessError is error occurs during conversion
@@ -134,8 +132,11 @@ class FontConverter(object):
             self._log.info(u"Processing '{element}' (keycode: {keycode}) ...".
                            format(element=element, keycode=self._element_map[element]))
 
-            output_file = os.path.join(self._output_folder, "{ship}-{color}.{format}"
-                                       .format(ship=element, color=color, format=file_format))
+            output_file = os.path.join(self._output_folder, "{element}-{color}.{format}"
+                                       .format(element=element, color=color, format=file_format))
+            # todo: make it optional
+            # output_file = os.path.join(self._output_folder, "{element}.{format}"
+            #                            .format(element=element, format=file_format))
             convert_cmd = u"convert -font {ttf_file} -background none -fill {color} -gravity center " \
                           u"-pointsize {pointsize} -size {size}x{size} caption:{keycode} {output}". \
                 format(ttf_file=self._ttf_file_path,
@@ -146,26 +147,43 @@ class FontConverter(object):
                        output=output_file)
 
             self.execute_binary_command(convert_cmd)
-            # mogrify -unsharp 0x1 -resize 24x24 *.png
-
-    def resize_images(self, size):
-
-        resize_cmd = "mogrify -unsharp 0x1 -resize {size}x{size} {folder}{sep}*".format(size=size,
-                                                                                        folder=self._output_folder,
-                                                                                        sep=os.sep)
-        self.execute_binary_command(resize_cmd)
 
     def trim_images(self):
+        """
+        Trim images in output folder to remove excess transparent border
 
+        :rtype: None
+        """
+        self._log.info("Triming images in {}".format(self._output_folder))
         resize_cmd = "mogrify -trim {folder}{sep}*".format(folder=self._output_folder, sep=os.sep)
+        self.execute_binary_command(resize_cmd)
+
+    def resize_images(self, size, width=False):
+        """
+        Resize all image in folder to given size (keep aspect ratio)
+        :param size: Size in pixel
+        :type size: int
+
+        :param width: Whether use width as reference or not
+        :type width: bool
+
+        :rtype: None
+        """
+        # default resize by height
+        resize = 'x{size}'.format(size=size)
+        if width:
+            resize = '{size}x'.format(size=size)
+
+        self._log.info("Resizing images in {} to {}".format(self._output_folder, resize))
+
+        resize_cmd = "mogrify -unsharp 0x1 -geometry {resize} {folder}{sep}*".format(resize=resize,
+                                                                                     folder=self._output_folder,
+                                                                                     sep=os.sep)
         self.execute_binary_command(resize_cmd)
 
     def execute_binary_command(self, command):
         self._log.debug(command)
         args = command.encode(locale.getpreferredencoding())
-        # mogrify -unsharp 0x1 -resize 24x24 *.png
-        # mogrify -trim *.png
-
         try:
             # p = subprocess.Popen(args, shell=True)
             # p.communicate()

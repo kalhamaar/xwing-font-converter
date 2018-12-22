@@ -20,7 +20,7 @@ setup(name=xwing_font_converter.__prog_name__,
           "Topic :: Font",
       ],
       packages=find_packages(),
-      # include_package_data=True,
+      include_package_data=True,
       entry_points={
           'console_scripts': [
               'xwing-font-converter = xwing_font_converter.xwing_font_converter:main',

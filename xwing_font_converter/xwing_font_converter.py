@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 """
 X-Wing font to image converter
 
@@ -16,13 +15,13 @@ from sys import exit
 
 from os.path import basename
 
-from font_converter import FontConverter, AVAILABLE_COLORS, AVAILABLE_FILE_FORMATS
+from font_converter import FontConverter, AVAILABLE_COLORS, AVAILABLE_FILE_FORMATS, DEFAULT_SIZE, DEFAULT_POINTSIZE
 from logger import get_logger
 
 # __all__ = ['main']
 
 __prog_name__ = 'X-Wing Font Converter'
-__version__ = '0.1'
+__version__ = '0.3'
 __author__ = 'KalHamaar'
 __description__ = 'Convert geordanr\'s font into images'
 __url__ = 'https://github.com/kalhamaar/xwing_font_converter'
@@ -35,14 +34,17 @@ parser.add_argument('-c', '--color', dest='COLOR', default='black', action='stor
                     choices=AVAILABLE_COLORS,
                     help='color of font to use (default: %(default)s)')
 
-parser.add_argument('-p', '--pointsize', dest='PS', default=50, action='store',
+parser.add_argument('-p', '--pointsize', dest='PS', default=DEFAULT_POINTSIZE, action='store',
                     help='size of font to use (default: %(default)s)')
 
-parser.add_argument('-s', '--size', dest='SIZE', default=72, action='store',
+parser.add_argument('-s', '--size', dest='SIZE', default=DEFAULT_SIZE, action='store',
                     help='size of generated image as x*x (default: %(default)sx%(default)s)')
 
 parser.add_argument('--trim', dest='TRIM', default=False, action='store_true',
-                    help='Wether trim images or not (default: %(default))')
+                    help='Trim images (remove transparent border) (default: %(default)s)')
+
+parser.add_argument('--width', dest='WIDTH', default=False, action='store_true',
+                    help='Resize with width as reference (default: %(default)s)')
 
 parser.add_argument('-f', '--format', dest='FORMAT', default='gif', action='store',
                     choices=AVAILABLE_FILE_FORMATS,
@@ -97,11 +99,11 @@ def main():
 
     fc.convert_2_images(color=args.COLOR, point_size=args.PS, file_format=args.FORMAT)
 
-    if args.SIZE != 72:
-        fc.resize_images(args.SIZE)
-
     if args.TRIM:
         fc.trim_images()
+
+    if args.SIZE != DEFAULT_SIZE:
+        fc.resize_images(args.SIZE, args.WIDTH)
 
     logger.info("Extraction done, files available in: {}".format(args.OUT))
 

@@ -11,11 +11,10 @@ Used to convert xwing geordanr's font into png images.
 :seealso: https://github.com/geordanr/xwing-miniatures-font
 """
 import gtk
-from glib import GError
 from os.path import basename, join, exists
 
 import xwing_font_converter
-from font_converter import AVAILABLE_COLORS, AVAILABLE_FILE_FORMATS, FontConverter
+from font_converter import AVAILABLE_COLORS, AVAILABLE_FILE_FORMATS, FontConverter, DEFAULT_SIZE, DEFAULT_POINTSIZE
 from logger import get_logger
 
 __all__ = ['main']
@@ -33,9 +32,10 @@ class XWingFontConvertGui(gtk.Window):
 
         # set default params
         self._color = AVAILABLE_COLORS[0]
-        self._point_size = 50
-        self._size = 72
-        self._trim = True
+        self._point_size = DEFAULT_POINTSIZE
+        self._size = DEFAULT_SIZE
+        self._resize_width = False
+        self._trim = False
         self._file_format = AVAILABLE_FILE_FORMATS[0]
 
         self._map_entry = None
@@ -84,6 +84,16 @@ class XWingFontConvertGui(gtk.Window):
 
         c_hbox = gtk.HBox(False, 5)  # horizontal alignment box for combo boxes
 
+        # trim
+        trim_check = gtk.CheckButton("Trim images")
+        trim_check.connect("toggled", self.on_trim_checked)
+        c_hbox.add(trim_check)
+
+        # resize
+        resize_width = gtk.CheckButton("Resize on Width")
+        resize_width.connect("toggled", self.on_resize_width_checked)
+        c_hbox.add(resize_width)
+
         # colors
         color_box = gtk.combo_box_new_text()
         color_box.connect("changed", self.on_color_changed)
@@ -105,7 +115,7 @@ class XWingFontConvertGui(gtk.Window):
         size_entry.set_max_length(3)
         size_entry.set_width_chars(3)
         size_entry.connect("key-release-event", self.on_size_changed)
-        size_entry.set_text('72')
+        size_entry.set_text(str(DEFAULT_SIZE))
 
         c_hbox.add(size_entry)
 
@@ -155,12 +165,15 @@ class XWingFontConvertGui(gtk.Window):
         entry = gtk.Entry()
         entry.set_width_chars(80)
         entry.set_editable(False)
+        entry.set_name(entry_type)
+
         # ugly but to reduce redundancy ....
         setattr(self, "_{}_entry".format(entry_type), entry)
         hbox.add(entry)
 
         button = gtk.Button(stock=gtk.STOCK_OPEN)
         button.connect("clicked", self.__entry_types[entry_type])
+        button.set_name(entry_type)
         hbox.add(button)
 
         halign = gtk.Alignment(1, 0, 0, 0)
@@ -176,10 +189,23 @@ class XWingFontConvertGui(gtk.Window):
     def on_select_output_folder_clicked(self, widget):
         self._output_entry.set_text(self.on_select_folder_clicked(widget))
 
+    def on_trim_checked(self, widget):
+        self._trim = widget.get_active()
+        text = "Trim status changed to: {}".format(self._trim)
+        self.logger.debug(text)
+        self.statusbar.push(0, text)
+
+    def on_resize_width_checked(self, widget):
+        self._resize_width = widget.get_active()
+        text = "Resize on Width status changed to: {}".format(self._trim)
+        self.logger.debug(text)
+        self.statusbar.push(0, text)
+
     def on_color_changed(self, widget):
         self._color = widget.get_active_text()
-        self.logger.debug("Color {} chosen".format(self._color))
-        self.statusbar.push(0, "Color {} chosen".format(self._color))
+        text = "Color {} chosen".format(self._color)
+        self.logger.debug(text)
+        self.statusbar.push(0, text)
 
     def on_pointsize_changed(self, widget):
         self._point_size = widget.get_active_text()
@@ -217,9 +243,9 @@ class XWingFontConvertGui(gtk.Window):
         self.logger.info('Starting extraction of {}'.format(basename(self._font_entry.get_text())))
 
         self.logger.debug("Map file: {map_file_path} TTF File: {ttf_file_path} Output folder: {output_folder}"
-                     .format(map_file_path=self._map_entry.get_text(),
-                             ttf_file_path=self._font_entry.get_text(),
-                             output_folder=self._output_entry.get_text()))
+                          .format(map_file_path=self._map_entry.get_text(),
+                                  ttf_file_path=self._font_entry.get_text(),
+                                  output_folder=self._output_entry.get_text()))
 
         fc = FontConverter(map_file_path=self._map_entry.get_text(),
                            ttf_file_path=self._font_entry.get_text(),
@@ -232,20 +258,20 @@ class XWingFontConvertGui(gtk.Window):
 
         fc.get_elements_from_map()
         self.logger.debug("Converting {point_size} point size font to {color} {size}x{size} {file_format} images"
-                     .format(point_size=self._point_size,
-                             color=self._color,
-                             size=self._size,
-                             file_format=self._file_format))
+                          .format(point_size=self._point_size,
+                                  color=self._color,
+                                  size=self._size,
+                                  file_format=self._file_format))
 
         fc.convert_2_images(point_size=self._point_size,
                             color=self._color,
                             file_format=self._file_format)
 
-        if self._size != 72:
-            fc.resize_images(self._size)
-
         if self._trim:
             fc.trim_images()
+
+        if self._size != DEFAULT_SIZE:
+            fc.resize_images(self._size)
 
         self.logger.info("Extraction done, files available in: {}".format(self._output_entry.get_text()))
         widget.set_sensitive(True)  # re-enable button
@@ -283,17 +309,21 @@ class XWingFontConvertGui(gtk.Window):
         f_filter.add_pattern("*")
         dialog.add_filter(f_filter)
 
-        f_filter = gtk.FileFilter()
-        f_filter.set_name("Font")
-        f_filter.add_mime_type("application/x-font-ttf")
-        f_filter.add_pattern("*.ttf")
-        dialog.add_filter(f_filter)
+        if widget.name == "font":
+            f_filter = gtk.FileFilter()
+            f_filter.set_name("Font")
+            f_filter.add_mime_type("application/x-font-ttf")
+            f_filter.add_pattern("*.ttf")
+            dialog.add_filter(f_filter)
+            dialog.set_filter(f_filter)
 
-        f_filter = gtk.FileFilter()
-        f_filter.set_name("sCSS")
-        f_filter.add_mime_type("text/plain")
-        f_filter.add_pattern("*.scss")
-        dialog.add_filter(f_filter)
+        elif widget.name == "map":
+            j_filter = gtk.FileFilter()
+            j_filter.set_name("Json")
+            j_filter.add_mime_type("text/plain")
+            j_filter.add_pattern("*.json")
+            dialog.add_filter(j_filter)
+            dialog.set_filter(j_filter)
 
         response = dialog.run()
         if response == gtk.RESPONSE_OK:
@@ -342,11 +372,11 @@ class XWingFontConvertGui(gtk.Window):
             # we are in source exec
             return logo_path
         elif pkg_resources.resource_exists(__name__, logo_path):
-            return pkg_resources.resource_filename(__name__, 'resources/index.gif')
-
+            return pkg_resources.resource_filename(__name__, logo_path)
         else:
-            print "Unable to find logo resource, exiting ..."
+            print("Unable to find logo resource, exiting ...")
             exit(-1)
+
 
 def main():
     XWingFontConvertGui()
